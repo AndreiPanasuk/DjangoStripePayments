@@ -5,6 +5,7 @@ from django.http.response import JsonResponse
 from rest_framework import permissions, viewsets
 from rest_framework import generics
 import stripe
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 from .models import Item
 from .serializers import ItemSerializer
@@ -23,19 +24,29 @@ class ItemView(TemplateView):
 class CreateSessionView(View):
     def get(self, request, *args, **kwargs):
         pk = kwargs['pk']
-        count = kwargs['count']
+        count = request.GET.get('count')
         item = Item.objects.get(pk=pk)
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[
-                {
-                    'price': item.stripe_price_id,
-                    'quantity': count,
-                },
-            ],
-            mode='payment',
-        )
-        return JsonResponse(session_id=session.id, safe=False)
+        domain_url = 'http://localhost:8000/'
+        reason, status = None, 200
+        try:
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[
+                    {
+                        'price': item.stripe_price_id,
+                        'quantity': count,
+                    },
+                ],
+                mode='subscription',
+               success_url=domain_url + 'success/',
+               cancel_url=domain_url + 'cancelled/',
+            )
+            data = {'session_id': session.id}
+        except Exception as e:
+            status = 500
+            reason = str(e)
+            data = {'error': reason}
+        return JsonResponse(data, status=status, reason=reason)
     
     
 # new
