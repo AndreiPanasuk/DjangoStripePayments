@@ -1,0 +1,31 @@
+.field {
+	padding: 1em;
+}
+.container {
+	font-size: 16px;
+	width: 30em;
+	border: 1px solid #eeeeee;
+}
+.title {
+	width: 100%;
+	font-size: 18px;
+	text-decoration: underline;
+	text-align: center;
+}
+.field label {
+	 display: inline-block;
+	 width: 10em;
+}
+.field span {
+	font-weight: bold;
+}
+.buy-button {
+	float: right;
+  font-weight: bold;
+  width: 5em;
+}
+#count {
+	text-align: right;
+	font-weight: bold;
+	width: 5em;
+}
