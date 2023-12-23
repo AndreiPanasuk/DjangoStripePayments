@@ -25,8 +25,15 @@
   width: 5em;
   height: 2em;
 }
-#count {
+.count, #count {
 	text-align: right;
 	font-weight: bold;
 	width: 5em;
+}
+.product {
+	padding: 1em;
+	border: 1px solid #aaaaaa;
+}
+.product .field {
+  padding: 0.2em;
 }

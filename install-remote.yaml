@@ -1,5 +1,5 @@
-- hosts: omega-abacus.ru
-  remote_user: andrey
+- hosts: <remote-host>
+  remote_user: <remote-user>
   tasks:
   - name: 'make application dir'
     command: "mkdir -p projects/strip_pays"    
