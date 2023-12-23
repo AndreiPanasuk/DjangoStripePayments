@@ -6,3 +6,5 @@ logs
 .settings
 .dbeaver
 .env
+ansible.cfg
+hosts

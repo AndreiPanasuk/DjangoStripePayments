@@ -1,0 +1,44 @@
+- hosts: omega-abacus.ru
+  remote_user: andrey
+  tasks:
+  - name: 'make application dir'
+    command: "mkdir -p projects/strip_pays"    
+    args:
+         chdir: "./"
+  - name: "Copy Dockerfile"
+    copy: 
+      src: ./Dockerfile
+      dest: ./projects/strip_pays/
+  - name: "Copy requirements.txt"
+    copy: 
+      src: ./requirements.txt
+      dest: ./projects/strip_pays/
+  - name: "Copy manage.py"
+    copy: 
+      src: ./manage.py
+      dest: ./projects/strip_pays/
+  - name: "Copy db.sqlite3"
+    copy: 
+      src: ./db.sqlite3
+      dest: ./projects/strip_pays/
+  - name: "Copy .env"
+    copy: 
+      src: ./.env
+      dest: ./projects/strip_pays/
+  - name: "Copy djstripe/"
+    copy: 
+      src: ./djstripe/
+      dest: ./projects/strip_pays/djstripe/
+  - name: "Copy spays/"
+    copy: 
+      src: ./spays/
+      dest: ./projects/strip_pays/spays/
+  - name: 'docker build'
+    command: "docker build -t strip_pays ."    
+    args:
+         chdir: "./projects/strip_pays"
+  - name: 'docker run'
+    command: "docker run -d --name strip_pays_app -p 8000:8000 strip_pays"    
+    args:
+         chdir: "./projects/strip_pays"
+      

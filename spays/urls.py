@@ -12,4 +12,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('item/<int:pk>/', views.ItemView.as_view(), name='item'),
     path('buy/<int:pk>/', views.CreateSessionView.as_view(), name='create-session'),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
