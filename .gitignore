@@ -5,3 +5,4 @@ logs
 .pydevproject
 .settings
 .dbeaver
+.env

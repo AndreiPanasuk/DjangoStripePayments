@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-%l6tp9rvv8*1*5r76u&u4rsl)-*66xzx3l64f2v2sl3c7yx4+6"
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') #"django-insecure-%l6tp9rvv8*1*5r76u&u4rsl)-*66xzx3l64f2v2sl3c7yx4+6"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -138,5 +142,5 @@ SACCOUNT = {
     'passw': 'amigo,01-amigo,02',
     'full name': 'AndrePan',
 }
-STRIPE_PUBLISHABLE_KEY = 'pk_test_51OQ5MDLH4UwvJ9hjJzPKvNhK9WIyqEL4lCiV6Kf0rHvgaXARSKiZMzqAmUDCPtvUgtjmmgcjFA4KMLOV9luUPrPU00F7QA4ehi'
-STRIPE_SECRET_KEY = 'sk_test_51OQ5MDLH4UwvJ9hj9OKiZ0Vx9h7L0bfRtBaXRrFlIKAQvTFDWipnF1Ona44qC1FoDreC91U7xb5S5790gYe6NBnD009kBT4H4q'
+STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY') #'pk_test_51OQ5MDLH4UwvJ9hjJzPKvNhK9WIyqEL4lCiV6Kf0rHvgaXARSKiZMzqAmUDCPtvUgtjmmgcjFA4KMLOV9luUPrPU00F7QA4ehi'
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY') #'sk_test_51OQ5MDLH4UwvJ9hj9OKiZ0Vx9h7L0bfRtBaXRrFlIKAQvTFDWipnF1Ona44qC1FoDreC91U7xb5S5790gYe6NBnD009kBT4H4q'

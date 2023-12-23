@@ -1,9 +1,7 @@
 from django.conf import settings
 from django.views.generic.base import TemplateView, View
-from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse
 from rest_framework import permissions, viewsets
-from rest_framework import generics
 import stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -38,8 +36,8 @@ class CreateSessionView(View):
                     },
                 ],
                 mode='subscription',
-               success_url=domain_url + 'success/',
-               cancel_url=domain_url + 'cancelled/',
+                success_url=domain_url + 'success/',
+                cancel_url=domain_url + 'cancelled/',
             )
             data = {'session_id': session.id}
         except Exception as e:
@@ -49,25 +47,7 @@ class CreateSessionView(View):
         return JsonResponse(data, status=status, reason=reason)
     
     
-# new
-@csrf_exempt
-def stripe_config(request):
-    if request.method == 'GET':
-        stripe_config = {'publicKey': settings.STRIPE_PUBLISHABLE_KEY}
-        return JsonResponse(stripe_config, safe=False)
-
-
 class ItemViewSet(viewsets.ModelViewSet):
     queryset = Item.objects.all().order_by('id')
     serializer_class = ItemSerializer
     permission_classes = [permissions.IsAuthenticated]
-
-
-class ItemList(generics.ListCreateAPIView):
-    queryset = Item.objects.all().order_by('id')
-    serializer_class = ItemSerializer
-
-
-class ItemDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Item.objects.all()
-    serializer_class = ItemSerializer
