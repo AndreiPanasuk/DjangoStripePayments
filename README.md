@@ -5,7 +5,7 @@ Django and Stripe Payments
 Реализовать Django + Stripe API бэкенд со следующим функционалом и условиями:
 
 ```
-Реализовано приложение Django (Ubuntu 20.04, python3.10):
+Реализовано приложение Django 5.0 (Ubuntu 20.04, python 3.10):
   
   - project - каталог djstripe
   
