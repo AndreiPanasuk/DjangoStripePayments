@@ -5,6 +5,5 @@ logs
 .pydevproject
 .settings
 .dbeaver
-.env
 ansible.cfg
 hosts

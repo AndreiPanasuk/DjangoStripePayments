@@ -34,7 +34,7 @@ async function get_order_session(event) {
     let elments = document.getElementsByClassName('count')
     let items = [];
     for(let elm of elments){
-      let count = parseInt(elm.value);
+      let count = parseNumber(elm.value);
       if (count<0) return alert(`ERROR: bad product count ${count}`); 
       if (count) {
         let id = parseInt(elm.getAttribute('product_id')); 

@@ -17,6 +17,9 @@ class Order(models.Model):
     onum = models.CharField(max_length=100, blank=True)
     osum = models.DecimalField(max_digits=12, decimal_places=2) 
     items = models.ManyToManyField(Item, through='OrderItem')
+    user_ip = models.CharField(max_length=32, blank=True)
+    stripe_session_id = models.TextField(blank=True)
+    stripe_session_url = models.TextField(blank=True)    
 
 
 class OrderItem(models.Model):
