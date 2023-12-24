@@ -3,8 +3,9 @@ Django and Stripe Payments
 Задача
 
 Реализовать Django + Stripe API бэкенд со следующим функционалом и условиями:
-```html
-<div style="color:blue;font-style: italic;">Реализовано приложение Django (Ubuntu 20.04, python3.10):
+
+```
+Реализовано приложение Django (Ubuntu 20.04, python3.10):
   
   - project - каталог djstripe
   
@@ -14,49 +15,77 @@ Django and Stripe Payments
   
   - superuser - admin/admin
   
-  - зависимости - файл requirements.txt</div>
+  - зависимости - файл requirements.txt
+```
 
 ·   Django Модель Item с полями (name, description, price)
 
-<span style="color:blue;font-style:italic">реализовано в spays/models.py (Item)</span>
+```
+реализовано в spays/models.py (Item)
+```
 
 API с двумя методами:
 
 ·   GET /buy/{id}, c помощью которого можно получить Stripe Session Id для оплаты выбранного Item. При выполнении этого метода c бэкенда с помощью python библиотеки stripe должен выполняться запрос stripe.checkout.Session.create(...) и полученный session.id выдаваться в результате запроса
 
-<span style="color:blue;font-style:italic">реализовано в spays/views.py (CreateSessionView)</span>
+```
+реализовано в spays/views.py (CreateSessionView)
+```
 
 ·   GET /item/{id}, c помощью которого можно получить простейшую HTML страницу, на которой будет информация о выбранном Item и кнопка Buy. По нажатию на кнопку Buy должен происходить запрос на /buy/{id}, получение session_id и далее с помощью JS библиотеки Stripe происходить редирект на Checkout форму stripe.redirectToCheckout(sessionId=session_id)
 
-<span style="color:blue;font-style:italic">реализовано в spays/views.py (ItemView)</span>
+```
+реализовано в spays/views.py (ItemView)
+```
 
 ·   Запуск используя Docker
 
-<span style="color:blue;font-style:italic">реализовано в Dockerfile</span>
+```
+реализовано в Dockerfile
+```
 
 ·   Использование environment variables
 
-<span style="color:blue;font-style:italic">реализовано в djstripe/settings.py, можно использовать environment variables: DJANGO_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY или установить в файле .env</span>
+```
+реализовано в djstripe/settings.py, 
+можно использовать environment variables: 
+DJANGO_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY 
+или установить в файле .env
+```
 
 ·   Просмотр Django Моделей в Django Admin панели
 
-<span style="color:blue;font-style:italic">реализовано в urls: /items, /discounts, /orders, /admin (для пользователей - сотрудников)</span>
+```
+реализовано в urls: 
+/items, /discounts, /orders, /admin 
+(для пользователей - сотрудников)
+```
 
 ·   Запуск приложения на удаленном сервере, доступном для тестирования
 
-<span style="color:blue;font-style:italic">реализовано для ansible-playbook: install-remote.yaml (необходимо устанавливать поля remote-host, remote-user)</span>
+```
+реализовано для ansible-playbook: install-remote.yaml 
+(необходимо устанавливать поля remote-host, remote-user)
+```
 
 ·   Модель Order, в которой можно объединить несколько Item и сделать платёж в Stripe на содержимое Order c общей стоимостью всех Items
 
-<span style="color:blue;font-style:italic">реализовано url: /order, в spays/models.py (Order), в spays/views.py (OrderView, CreateOrderSessionView)</span>
+```
+реализовано url: /order, в spays/models.py (Order), 
+в spays/views.py (OrderView, CreateOrderSessionView)
+```
 
 ·   Модели Discount, Tax, которые можно прикрепить к модели Order и связать с соответствующими атрибутами при создании платежа в Stripe - в таком случае они корректно отображаются в Stripe Checkout форме.
 
-<span style="color:blue;font-style:italic">реализована Discount в spays/models.py (Discount), добавление скидки к заказу доступно для пользователей-сотрудников в spays/views.py (OrderView, CreateOrderSessionView)</span>
+```
+реализована Discount в spays/models.py (Discount), 
+добавление скидки к заказу доступно для пользователей-сотрудников 
+в spays/views.py (OrderView, CreateOrderSessionView)
+```
 
 ·   Добавить поле Item.currency, создать 2 Stripe Keypair на две разные валюты и в зависимости от валюты выбранного товара предлагать оплату в соответствующей валюте
 
 ·   Реализовать не Stripe Session, а Stripe Payment Intent.
-```
+
 
 
