@@ -1,10 +1,9 @@
 # DjangoStripePayments
 Django and Stripe Payments
-
 Задача
 
 Реализовать Django + Stripe API бэкенд со следующим функционалом и условиями:
-
+```html
 <div style="color:blue;font-style: italic;">Реализовано приложение Django (Ubuntu 20.04, python3.10):
   
   - project - каталог djstripe
@@ -58,6 +57,6 @@ API с двумя методами:
 ·   Добавить поле Item.currency, создать 2 Stripe Keypair на две разные валюты и в зависимости от валюты выбранного товара предлагать оплату в соответствующей валюте
 
 ·   Реализовать не Stripe Session, а Stripe Payment Intent.
-
+```
 
 
