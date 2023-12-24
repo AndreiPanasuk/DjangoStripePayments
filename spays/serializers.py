@@ -1,4 +1,4 @@
-from .models import Item, Order, OrderItem
+from .models import Item, Order, OrderItem, Discount
 from rest_framework import serializers
 
 
@@ -6,6 +6,12 @@ class ItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
         fields = ['id', 'name', 'description', 'price', 'stripe_price_id']
+
+
+class DiscountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Discount
+        fields = ['id', 'name', 'dtype', 'dval']
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -18,6 +24,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     orderitem_set = OrderItemSerializer(many=True)
+    discounts = DiscountSerializer(many=True)
     class Meta:
         model = Order
-        fields = ['id', 'onum', 'odate', 'ouser', 'user_ip', 'osum', 'orderitem_set']
+        fields = ['id', 'onum', 'odate', 'ouser', 'user_ip', 'osum', 'orderitem_set', 'discounts']

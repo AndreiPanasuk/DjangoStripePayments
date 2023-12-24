@@ -7,12 +7,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Django + Stripe Checkout</title>
     <link rel="stylesheet" href="{% static 'css/stripe.css' %}">
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="{% static 'js/stripe.js' %}"></script>
   </head>
   <body>
     {% csrf_token %}
     <div class="container">
-      <div class='title'>Order</b></div>
+      <div class='title'>Order</div>
+      <div class='title1'>Products</div>
       {%for item in items%}
       <div class="product"> 
 	      <div class='field'>
@@ -29,6 +31,16 @@
 	      </div>
 	     </div>
       {%endfor%}
+      {%if discounts%}
+      <div class='title1'>Discounts</div>
+			<select name="discount" id="discount">
+			  <option value=""></option>
+			  {%for disc in discounts%}
+			  <option value="{{disc.pk}}">{{disc}}</option>
+			  {%endfor%}
+			</select>
+      {%endif%}
+      <input id="STRIPE_PUBLIC_KEY" type="hidden" value="{{STRIPE_PUBLISHABLE_KEY}}">
       <button class="buy-button" id="buyOrderBtn">Buy</button>
     </div>
   </body>

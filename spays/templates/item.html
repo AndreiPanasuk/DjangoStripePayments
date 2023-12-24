@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Django + Stripe Checkout</title>
     <link rel="stylesheet" href="{% static 'css/stripe.css' %}">
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="{% static 'js/stripe.js' %}"></script>
   </head>
   <body>
@@ -25,6 +26,7 @@
         <label>Count:</label><input id="count" type="number" value="1">
       </div>
       <input id="pk" type="hidden" value="{{item.pk}}">
+      <input id="STRIPE_PUBLIC_KEY" type="hidden" value="{{STRIPE_PUBLISHABLE_KEY}}">
       <button class="buy-button" id="buyBtn">Buy</button>
     </div>
   </body>

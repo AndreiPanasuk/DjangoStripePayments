@@ -8,10 +8,11 @@ from rest_framework import permissions, viewsets
 import stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
-from .models import Item, Order, OrderItem
-from .serializers import ItemSerializer, OrderSerializer
+from .models import Item, Order, OrderItem, Discount
+from .serializers import ItemSerializer, OrderSerializer, DiscountSerializer
 
 getcontext().prec = 2
+Dec100 = Decimal('100.00')
 
 class ItemView(TemplateView):
     template_name = 'item.html'
@@ -19,7 +20,11 @@ class ItemView(TemplateView):
     def get(self, request, *args, **kwargs):
         pk = kwargs['pk']
         item = Item.objects.get(pk=pk)
-        context = self.get_context_data(item=item, **kwargs)
+        context = self.get_context_data(
+            item=item, 
+            STRIPE_PUBLISHABLE_KEY=settings.STRIPE_PUBLISHABLE_KEY,
+            **kwargs,
+        )
         return self.render_to_response(context)
 
 
@@ -28,7 +33,16 @@ class OrderView(TemplateView):
     
     def get(self, request, *args, **kwargs):
         items = Item.objects.all().order_by('name')
-        context = self.get_context_data(items=items, **kwargs)
+        if request.user and request.user.is_staff:
+            discounts = Discount.objects.all().order_by('name')
+        else:
+            discounts = None
+        context = self.get_context_data(
+            items=items, 
+            discounts=discounts, 
+            STRIPE_PUBLISHABLE_KEY=settings.STRIPE_PUBLISHABLE_KEY,
+            **kwargs,
+        )
         return self.render_to_response(context)
 
 
@@ -77,18 +91,34 @@ class CreateOrderSessionView(View):
             count = Decimal(prod['count'])
             line_items.append(dict(price=item.stripe_price_id, quantity=count))
             osum += Decimal(count * item.price)
+        discounts = None
+        coupons = []
+        if request.user and request.user.is_staff and (discs := data.get('discounts')):
+            disc_ids = list(d['id'] for d in discs)
+            if disc_ids:
+                discounts = list(Discount.objects.filter(pk__in=disc_ids))
+                for d in discounts:
+                    coupons.append({'coupon': d.stripe_id})
+                    if d.dtype == 'Fixed':
+                        if osum > d.dval:
+                            osum -= d.dval
+                        else:
+                            osum = Decimal('0')
+                    else:
+                        osum -= Decimal(osum * d.dval / Dec100)
         domain_url = 'http://localhost:8000/'
         reason, status = None, 200
         try:
             session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=line_items,
+                discounts=coupons,
                 mode='subscription',
                 success_url=domain_url + 'success/',
                 cancel_url=domain_url + 'cancelled/',
             )
             data = {'session_id': session.id, 'session_url': session.url}
-            data['order_id'] = self._create_order(request, osum, products, items, data)
+            data['order_id'] = self._create_order(request, osum, products, discounts, items, data)
         except Exception as e:
             status = 500
             reason = str(e)
@@ -96,8 +126,8 @@ class CreateOrderSessionView(View):
         return JsonResponse(data, status=status, reason=reason)
     
     @transaction.atomic
-    def _create_order(self, request, osum, products, items, data):
-        ouser = request.user.username or 'Anonymous'
+    def _create_order(self, request, osum, products, discounts, items, data):
+        ouser = (request.user.username if request.user else '') or 'Anonymous'
         user_ip = request.META.get("REMOTE_ADDR")
         num_cnt = Order.objects.filter(ouser=ouser).count() + 1
         onum = f'{ouser}-{num_cnt}'
@@ -116,16 +146,24 @@ class CreateOrderSessionView(View):
             oisum = Decimal(count * item.price)
             oitem = OrderItem(order=order, item=item, quantity=count, oisum=oisum)
             oitem.save()
+        if discounts:
+            order.discounts.add(*discounts)
         return order.pk
 
 
 class ItemViewSet(viewsets.ModelViewSet):
     queryset = Item.objects.all().order_by('id')
     serializer_class = ItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
 
 
 class OrderViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Order.objects.all().order_by('id')
     serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
+
+
+class DiscountViewSet(viewsets.ModelViewSet):
+    queryset = Discount.objects.all().order_by('id')
+    serializer_class = DiscountSerializer
+    permission_classes = [permissions.IsAdminUser]

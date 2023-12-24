@@ -22,7 +22,7 @@ async function get_session(event) {
       else {
         msg = `session_id = ${result.session_id}`;
         console.log(msg)
-        window.open(result.session_url, "PaymentTab");
+        return await open_stripe(result);
       }
     } catch(err) {
       msg = err.toString();
@@ -34,7 +34,7 @@ async function get_order_session(event) {
     let elments = document.getElementsByClassName('count')
     let items = [];
     for(let elm of elments){
-      let count = parseNumber(elm.value);
+      let count = parseInt(elm.value);
       if (count<0) return alert(`ERROR: bad product count ${count}`); 
       if (count) {
         let id = parseInt(elm.getAttribute('product_id')); 
@@ -42,7 +42,14 @@ async function get_order_session(event) {
       }
     }
     if (!items.length) return alert('ERROR: set the count of products'); 
-    let data = {products: items}
+    let discounts = [];
+    let disc_elm = document.getElementById('discount');
+    if (disc_elm){
+      let id = parseInt(disc_elm.value); 
+      if (id)
+        discounts.push({id})
+    }
+    let data = {products: items, discounts}
     let url = `/buy/order/`;
     let response = await fetch(url, {
       method: "POST",
@@ -62,10 +69,20 @@ async function get_order_session(event) {
       else {
         msg = `session_id = ${result.session_id}`;
         console.log(msg)
-        window.open(result.session_url, "PaymentTab");
+        return await open_stripe(result);
       }
     } catch(err) {
       msg = err.toString();
     }
+    alert(msg);
+}
+async function open_stripe(data){
+  //window.open(result.session_url, "PaymentTab");
+  let public_key = document.getElementById('STRIPE_PUBLIC_KEY').value;
+  let stripe = Stripe(public_key);
+  let result = await stripe.redirectToCheckout({sessionId: data.session_id});
+  let msg;
+  if (result.error)
+    msg = `ERROR: ${result.error.message}`;
     alert(msg);
 }
