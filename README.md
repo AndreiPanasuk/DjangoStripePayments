@@ -16,12 +16,16 @@ Django and Stripe Payments
   - superuser - admin/admin
   
   - зависимости - файл requirements.txt
+  
+  - settings - djstripe/settings.py
+  
+  - запуск - python manage.py runserver <host>:<port>
 ```
 
 ·   Django Модель Item с полями (name, description, price)
 
 ```
-реализовано в spays/models.py (Item)
+реализовано в spays.models.Item
 ```
 
 API с двумя методами:
@@ -29,13 +33,13 @@ API с двумя методами:
 ·   GET /buy/{id}, c помощью которого можно получить Stripe Session Id для оплаты выбранного Item. При выполнении этого метода c бэкенда с помощью python библиотеки stripe должен выполняться запрос stripe.checkout.Session.create(...) и полученный session.id выдаваться в результате запроса
 
 ```
-реализовано в spays/views.py (CreateSessionView)
+реализовано в spays.views.CreateSessionView
 ```
 
 ·   GET /item/{id}, c помощью которого можно получить простейшую HTML страницу, на которой будет информация о выбранном Item и кнопка Buy. По нажатию на кнопку Buy должен происходить запрос на /buy/{id}, получение session_id и далее с помощью JS библиотеки Stripe происходить редирект на Checkout форму stripe.redirectToCheckout(sessionId=session_id)
 
 ```
-реализовано в spays/views.py (ItemView)
+реализовано в spays.views.ItemView
 ```
 
 ·   Запуск используя Docker
@@ -47,7 +51,7 @@ API с двумя методами:
 ·   Использование environment variables
 
 ```
-реализовано в djstripe/settings.py, 
+реализовано в djstripe.settings, 
 можно использовать environment variables: 
 DJANGO_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY 
 или установить в файле .env
@@ -71,16 +75,16 @@ DJANGO_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY
 ·   Модель Order, в которой можно объединить несколько Item и сделать платёж в Stripe на содержимое Order c общей стоимостью всех Items
 
 ```
-реализовано url: /order, в spays/models.py (Order), 
-в spays/views.py (OrderView, CreateOrderSessionView)
+реализовано url: /order, в spays.models.Order, 
+в spays.views.OrderView, CreateSessionView
 ```
 
 ·   Модели Discount, Tax, которые можно прикрепить к модели Order и связать с соответствующими атрибутами при создании платежа в Stripe - в таком случае они корректно отображаются в Stripe Checkout форме.
 
 ```
-реализована Discount в spays/models.py (Discount), 
+реализована Discount в spays.models.Discount, 
 добавление скидки к заказу доступно для пользователей-сотрудников 
-в spays/views.py (OrderView, CreateOrderSessionView)
+в spays.views.OrderView, CreateSessionView
 ```
 
 ·   Добавить поле Item.currency, создать 2 Stripe Keypair на две разные валюты и в зависимости от валюты выбранного товара предлагать оплату в соответствующей валюте

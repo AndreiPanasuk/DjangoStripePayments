@@ -1,73 +1,37 @@
 import json
 from decimal import Decimal, getcontext
 from django.conf import settings
-from django.views.generic.base import TemplateView, View
+from django.views.generic.base import View
 from django.http.response import JsonResponse
 from django.db import transaction
-from rest_framework import permissions, viewsets
 import stripe
-stripe.api_key = settings.STRIPE_SECRET_KEY
 
-from .models import Item, Order, OrderItem, Discount
-from .serializers import ItemSerializer, OrderSerializer, DiscountSerializer
+from ..models import Item, Order, OrderItem, Discount
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 getcontext().prec = 2
 Dec100 = Decimal('100.00')
 
-class ItemView(TemplateView):
-    template_name = 'item.html'
+
+class CreateSessionView(View):    
+    http_method_names = ['get', 'post']
     
     def get(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        item = Item.objects.get(pk=pk)
-        context = self.get_context_data(
-            item=item, 
-            STRIPE_PUBLISHABLE_KEY=settings.STRIPE_PUBLISHABLE_KEY,
-            **kwargs,
-        )
-        return self.render_to_response(context)
-
-
-class OrderView(TemplateView):
-    template_name = 'order.html'
-    
-    def get(self, request, *args, **kwargs):
-        items = Item.objects.all().order_by('name')
-        if request.user and request.user.is_staff:
-            discounts = Discount.objects.all().order_by('name')
-        else:
-            discounts = None
-        context = self.get_context_data(
-            items=items, 
-            discounts=discounts, 
-            STRIPE_PUBLISHABLE_KEY=settings.STRIPE_PUBLISHABLE_KEY,
-            **kwargs,
-        )
-        return self.render_to_response(context)
-
-
-class CreateSessionView(View):
-    http_method_names = ['get']
-    
-    def get(self, request, *args, **kwargs):
+        """Create Stripe session for Item"""
+        
         pk = kwargs['pk']
         count = request.GET.get('count')
         item = Item.objects.get(pk=pk)
-        domain_url = 'http://localhost:8000/'
         reason, status = None, 200
+        line_items = [
+            {
+                'price': item.stripe_price_id,
+                'quantity': count,
+            },
+        ]
         try:
-            session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[
-                    {
-                        'price': item.stripe_price_id,
-                        'quantity': count,
-                    },
-                ],
-                mode='subscription',
-                success_url=domain_url + 'success/',
-                cancel_url=domain_url + 'cancelled/',
-            )
+            session = self.create_session(request, line_items, coupons=[])
             data = {'session_id': session.id, 'session_url': session.url}
         except Exception as e:
             status = 500
@@ -75,11 +39,9 @@ class CreateSessionView(View):
             data = {'error': reason}
         return JsonResponse(data, status=status, reason=reason)
     
-
-class CreateOrderSessionView(View):
-    http_method_names = ['post']
-    
     def post(self, request, *args, **kwargs):
+        """Create Stripe session for Order"""
+        
         data = json.loads(request.body)
         products = data['products']
         ids = [prod['id'] for prod in products]
@@ -106,27 +68,30 @@ class CreateOrderSessionView(View):
                             osum = Decimal('0')
                     else:
                         osum -= Decimal(osum * d.dval / Dec100)
-        domain_url = 'http://localhost:8000/'
         reason, status = None, 200
         try:
-            session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=line_items,
-                discounts=coupons,
-                mode='subscription',
-                success_url=domain_url + 'success/',
-                cancel_url=domain_url + 'cancelled/',
-            )
+            session = self.create_session(request, line_items, coupons)
             data = {'session_id': session.id, 'session_url': session.url}
-            data['order_id'] = self._create_order(request, osum, products, discounts, items, data)
+            data['order_id'] = self.create_order(request, osum, products, discounts, items, data)
         except Exception as e:
             status = 500
             reason = str(e)
             data = {'error': reason}
         return JsonResponse(data, status=status, reason=reason)
-    
+
+    def create_session(self, request, line_items, coupons):
+        domain_url = request.build_absolute_uri('/')
+        return stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            discounts=coupons,
+            mode='subscription',
+            success_url=domain_url + 'success/',
+            cancel_url=domain_url + 'cancelled/',
+        )
+            
     @transaction.atomic
-    def _create_order(self, request, osum, products, discounts, items, data):
+    def create_order(self, request, osum, products, discounts, items, data):
         ouser = (request.user.username if request.user else '') or 'Anonymous'
         user_ip = request.META.get("REMOTE_ADDR")
         num_cnt = Order.objects.filter(ouser=ouser).count() + 1
@@ -149,21 +114,3 @@ class CreateOrderSessionView(View):
         if discounts:
             order.discounts.add(*discounts)
         return order.pk
-
-
-class ItemViewSet(viewsets.ModelViewSet):
-    queryset = Item.objects.all().order_by('id')
-    serializer_class = ItemSerializer
-    permission_classes = [permissions.IsAdminUser]
-
-
-class OrderViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Order.objects.all().order_by('id')
-    serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAdminUser]
-
-
-class DiscountViewSet(viewsets.ModelViewSet):
-    queryset = Discount.objects.all().order_by('id')
-    serializer_class = DiscountSerializer
-    permission_classes = [permissions.IsAdminUser]
